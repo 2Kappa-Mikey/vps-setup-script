@@ -56,7 +56,7 @@ ufw status | grep -q "inactive" && {
     ufw default deny incoming
     ufw default allow outgoing
     ufw allow ssh
-    ufw enable
+    ufw enable -y
     echo "UFW активирован и настроен."
 }
 
