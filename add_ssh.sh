@@ -14,7 +14,7 @@ chmod 700 "$USER_HOME/.ssh"
 
 # Запрос SSH-ключа у пользователя
 echo "Введите ваш публичный SSH-ключ:"
-sudo -u $SUDO_USER read SSH_KEY
+read SSH_KEY
 
 # Проверка, есть ли ключ уже в authorized_keys
 if ! grep -q "$SSH_KEY" "$USER_HOME/.ssh/authorized_keys"; then
