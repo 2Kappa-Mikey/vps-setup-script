@@ -16,6 +16,12 @@ chmod 700 "$USER_HOME/.ssh"
 echo "Введите ваш публичный SSH-ключ:"
 read SSH_KEY < /dev/tty
 
+# Проверка на пустой ввод
+if [ -z "$SSH_KEY" ]; then
+    echo "Ошибка: Вы не ввели SSH-ключ. Пожалуйста, не игнорируйте ввод ключа ибо потом вход будет невозможен."
+    exit 1
+fi
+
 # Проверка, есть ли ключ уже в authorized_keys
 if ! grep -q "$SSH_KEY" "$USER_HOME/.ssh/authorized_keys"; then
     # Если ключ не найден, добавляем его
