@@ -1,14 +1,15 @@
 echo "Отключение двухстороннего пинга в ufw..."
 
-# Проверяем наличие строки с "icmp" в before.rules
-if ! grep -q "icmp" /etc/ufw/before.rules; then
+# Проверяем, есть ли уже правила для блокировки ICMP
+if ! grep -q "icmp --icmp-type echo-request" /etc/ufw/before.rules; then
     echo "Добавляем правила блокировки ICMP..."
-    
-    # Добавляем правила в /etc/ufw/before.rules с использованием многострочного ввода
-    sed -i '/^# End required lines/i \
-# Отключение ICMP echo request и reply \n\
--A ufw-before-input -p icmp --icmp-type echo-request -j DROP \n\
--A ufw-before-output -p icmp --icmp-type echo-reply -j DROP' /etc/ufw/before.rules
+
+    # Добавляем правила в before.rules
+    cat <<EOT >> /etc/ufw/before.rules
+# Отключение ICMP echo request и reply
+-A ufw-before-input -p icmp --icmp-type echo-request -j DROP
+-A ufw-before-output -p icmp --icmp-type echo-reply -j DROP
+EOT
 
     # Перезагружаем UFW для применения изменений
     ufw reload
