@@ -8,7 +8,6 @@ if ! grep -q "icmp --icmp-type echo-request" /etc/ufw/before.rules; then
     cat <<EOT >> /etc/ufw/before.rules
 # Отключение ICMP echo request и reply
 -A ufw-before-input -p icmp --icmp-type echo-request -j DROP
--A ufw-before-output -p icmp --icmp-type echo-reply -j DROP
 EOT
 
     # Перезагружаем UFW для применения изменений
