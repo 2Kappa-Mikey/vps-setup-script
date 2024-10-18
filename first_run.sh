@@ -109,8 +109,13 @@ else
 fi
 
 # 7. Установка nano
-echo "Установка nano"
-apt install nano
+echo "Установка nano если его нет"
+if which nano >/dev/null; then
+    echo "nano уже установлен ранее"
+else
+    echo "Ставим nano"
+    apt install nano
+fi
 
 # 8. Очистка 
 echo "Очистка напоследок"
