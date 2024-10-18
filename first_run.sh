@@ -5,7 +5,7 @@ echo "Обновление системы..."
 apt update && apt upgrade -y
 
 # 2. Настройка SSH - добавление SSH-ключа и отключение входа по паролю
-echo "Настройка SSH..."
+echo "Настройка подключения по SSH ключу..."
 
 USER_HOME=$(eval echo ~${SUDO_USER:-$USER})
 mkdir -p $USER_HOME/.ssh
@@ -15,17 +15,24 @@ chmod 700 $USER_HOME/.ssh
 echo "Введите ваш публичный SSH-ключ:"
 read SSH_KEY < /dev/tty
 
-# Проверка, есть ли ключ уже в authorized_keys
+# Проверка на пустой ввод
+if [ -z "$SSH_KEY" ]; then
+    echo "Ошибка: Вы не ввели SSH-ключ. Пожалуйста, не игнорируйте ввод ключа ибо потом вход будет невозможен."
+    exit 1
+fi
+
+# Проверка, есть ли уже этот ключ в authorized_keys
 if ! grep -q "$SSH_KEY" "$USER_HOME/.ssh/authorized_keys"; then
     # Если ключ не найден, добавляем его
     echo "$SSH_KEY" >> "$USER_HOME/.ssh/authorized_keys"
     chmod 600 "$USER_HOME/.ssh/authorized_keys"
     chown -R $(whoami):$(whoami) "$USER_HOME/.ssh"
-    echo "SSH-ключ успешно добавлен."
+    echo "Новый SSH-ключ успешно добавлен."
 else
-    echo "SSH ключ уже добавлен."
+    echo "Этот SSH ключ уже добавлен ранее."
 fi
 
+echo "Отключение паролей и разрешение ключевой авторизации только если ещё не настроено"
 # Отключение паролей и разрешение ключевой авторизации только если ещё не настроено
 if grep -q "^#PasswordAuthentication yes" /etc/ssh/sshd_config; then
     sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -100,5 +107,13 @@ if ! sysctl net.ipv4.tcp_congestion_control | grep -q "bbr"; then
 else
     echo "TCP BBR уже включен."
 fi
+
+# 7. Установка nano
+echo "Установка nano"
+apt install nano
+
+# 8. Очистка 
+echo "Очистка напоследок"
+apt autoclean -y && apt clean -y && apt autoremove -y
 
 echo "Настройка завершена!"
