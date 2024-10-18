@@ -11,16 +11,19 @@ USER_HOME=$(eval echo ~${SUDO_USER:-$USER})
 mkdir -p $USER_HOME/.ssh
 chmod 700 $USER_HOME/.ssh
 
+echo "Введите ваш публичный SSH-ключ:"
+read SSH_KEY
+
 # Проверка, есть ли ключ уже в authorized_keys
 if ! grep -q "$(echo "$SSH_KEY")" $USER_HOME/.ssh/authorized_keys; then
-    echo "Введите ваш публичный SSH-ключ:"
-    read SSH_KEY
     echo "$SSH_KEY" >> $USER_HOME/.ssh/authorized_keys
     chmod 600 $USER_HOME/.ssh/authorized_keys
     chown -R $(whoami):$(whoami) $USER_HOME/.ssh
+    echo "SSH-ключ успешно добавлен."
 else
     echo "SSH ключ уже добавлен."
 fi
+
 
 # Отключение паролей и разрешение ключевой авторизации только если ещё не настроено
 if grep -q "^#PasswordAuthentication yes" /etc/ssh/sshd_config; then
