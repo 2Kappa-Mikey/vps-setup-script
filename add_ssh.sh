@@ -5,7 +5,7 @@ echo "Обновление системы..."
 apt update && apt upgrade -y
 
 # 2. Настройка SSH - добавление SSH-ключа и отключение входа по паролю
-echo "Настройка SSH..."
+echo "Настройка подключения по SSH ключу..."
 
 # Определяем домашнюю директорию текущего пользователя (не root)
 USER_HOME=$(eval echo ~$SUDO_USER)
@@ -22,7 +22,7 @@ if ! grep -q "$SSH_KEY" "$USER_HOME/.ssh/authorized_keys"; then
     echo "$SSH_KEY" >> "$USER_HOME/.ssh/authorized_keys"
     chmod 600 "$USER_HOME/.ssh/authorized_keys"
     chown -R $SUDO_USER:$SUDO_USER "$USER_HOME/.ssh"
-    echo "SSH-ключ успешно добавлен."
+    echo "Новый SSH-ключ успешно добавлен."
 else
-    echo "SSH ключ уже добавлен."
+    echo "Этот SSH ключ уже добавлен ранее."
 fi
