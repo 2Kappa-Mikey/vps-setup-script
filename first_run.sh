@@ -61,16 +61,12 @@ ufw status | grep -q "inactive" && {
 }
 
 # 4. Отключение двухстороннего пинга (ICMP) в UFW
+# Отключение двухстороннего пинга в ufw
 echo "Отключение двухстороннего пинга в ufw..."
-if ! grep -q "icmp" /etc/ufw/before.rules; then
-    sed -i '/^# End required lines/i \
-    # Отключение ICMP echo request и reply \
-    -A ufw-before-input -p icmp --icmp-type echo-request -j DROP \
-    -A ufw-before-output -p icmp --icmp-type echo-reply -j DROP' /etc/ufw/before.rules
-    ufw reload
-    echo "ICMP блокировка добавлена."
-else
-    echo "ICMP уже заблокирован."
+if grep -q "^-A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT" /etc/ufw/before.rules; then
+    sed -i 's/^-A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT/-A ufw-before-input -p icmp --icmp-type echo-request -j DROP/' /etc/ufw/before.rules
+	ufw reload
+    echo "ICMP отключён."
 fi
 
 # 5. Установка и настройка fail2ban
