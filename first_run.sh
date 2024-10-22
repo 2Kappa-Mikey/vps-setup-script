@@ -113,7 +113,11 @@ else
     apt install nano
 fi
 
-# 8. Очистка 
+# 8. Установка размера файлов журналов в 1Gb
+echo "Установка размера файлов журналов в 1Gb"
+journalctl --vacuum-size=1G
+
+# 9. Очистка 
 echo "Очистка напоследок"
 apt autoclean -y && apt clean -y && apt autoremove -y
 
