@@ -80,9 +80,13 @@ if [ ! -f /etc/fail2ban/jail.local ]; then
 enabled = true
 port    = ssh
 logpath = %(sshd_log)s
-maxretry = 3
+backend = systemd
+maxretry = 2
 findtime = 600
 bantime = 86400
+bantime.increment = true
+bantime.factor = 3
+bantime.maxtime = 90d
 EOT
     systemctl restart fail2ban
     echo "Fail2Ban настроен для SSH."
@@ -114,8 +118,9 @@ else
 fi
 
 # 8. Установка размера файлов журналов в 1Gb
-echo "Установка размера файлов журналов в 1Gb"
+echo "Установка размера файлов журналов в 1Gb и 2 недели хранения"
 journalctl --vacuum-size=1G
+journalctl --vacuum-time=2weeks
 
 # 9. Очистка 
 echo "Очистка напоследок"
