@@ -114,15 +114,33 @@ if which nano >/dev/null; then
     echo "nano уже установлен ранее"
 else
     echo "Ставим nano"
-    apt install nano
+    apt install nano -y
 fi
 
-# 8. Установка размера файлов журналов в 1Gb
+# 8. Установка socat
+echo "Установка socat если его нет"
+if which socat >/dev/null; then
+    echo "socat уже установлен ранее"
+else
+    echo "Ставим socat"
+    apt install socat -y
+fi
+
+# 9. Установка cron
+echo "Установка cron если его нет"
+if which cron >/dev/null; then
+    echo "cron уже установлен ранее"
+else
+    echo "Ставим cron"
+    apt install cron -y
+fi
+
+# 10. Установка размера файлов журналов в 1Gb
 echo "Установка размера файлов журналов в 1Gb и 2 недели хранения"
 journalctl --vacuum-size=1G
 journalctl --vacuum-time=2weeks
 
-# 9. Очистка 
+# 11. Очистка 
 echo "Очистка напоследок"
 apt autoclean -y && apt clean -y && apt autoremove -y
 
