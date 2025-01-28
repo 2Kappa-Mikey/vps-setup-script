@@ -74,14 +74,14 @@ speed_test() {
 }
 
 speed() {
-     speed_test '22050' 'RETN RU'
-     speed_test '19919'  'Dronten  NL'
+     speed_test '52365' 'Amsterdam  NL'
+     speed_test '68029'  'Dronten  NL'
     # speed_test '38128' 'Biznet SBY  ID'
     # speed_test '5935' 'My Republic  SG'
     # speed_test '4802' 'FirstMedia  ID'
     # speed_test '12807' 'CBN JKT  ID'
     # speed_test '15248' 'Toronto   CA'
-     speed_test '3242'  'Zoetermeer   NL'
+    # speed_test '3242'  'Zoetermeer   NL'
     # speed_test '13242' 'Japan      JP'
 }
 
