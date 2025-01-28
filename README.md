@@ -1,5 +1,11 @@
 # vps-setup-script
 Скрипт первоначальной настройки (first_run.sh) нового VPS сервера на Ubuntu (22 \ 24 LTSC) под себя
+Запускается на VPS сервере командами 
+
+curl -o- https://raw.githubusercontent.com/2Kappa-Mikey/vps-setup-script/main/first_run.sh | bash  
+или
+wget -O- https://raw.githubusercontent.com/2Kappa-Mikey/vps-setup-script/main/first_run.sh | bash
+
 
 Что изменено:
 Проверка добавления SSH-ключа: Проверяем, есть ли ключ в файле authorized_keys. Если он уже есть, добавление пропускается.
