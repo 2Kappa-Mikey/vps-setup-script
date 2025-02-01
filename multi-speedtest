@@ -74,12 +74,12 @@ speed_test() {
 }
 
 speed() {
-     speed_test '52365' 'Amsterdam  NL'
-     speed_test '68029'  'Dronten  NL'
-     speed_test '40094' 'Frankfurt DE'
-     speed_test '44081' 'Frankfurt am Main DE'
-     speed_test '6827' 'Moscow MGTS  RU'
-     speed_test '8009' 'Vilnius LT'
+     speed_test '52365' 'Amsterdam  NL        '
+     speed_test '68029' 'Dronten  NL          '
+     speed_test '40094' 'Frankfurt DE         '
+     speed_test '44081' 'Frankfurt am Main DE '
+     speed_test '6827' 'Moscow MGTS  RU       '
+     speed_test '8009' 'Vilnius LT            '
     # speed_test '15248' 'Toronto   CA'
     # speed_test '3242'  'Zoetermeer   NL'
     # speed_test '13242' 'Japan      JP'
