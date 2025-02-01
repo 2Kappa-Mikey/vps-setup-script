@@ -113,6 +113,6 @@ install_speedtest() {
 ! _exists "wget" && _red "Error: wget command not found. You must be install wget command at first.\n" && exit 1
 
 next
-install_speedtest && printf "%-18s%-18s%-20s%-12s\n" " Node Name      " "Upload Speed" "Download Speed" "Latency"
+install_speedtest && printf "%-18s%-18s%-20s%-12s\n" " Node Name" "     Upload Speed" "Download Speed" "Latency"
 speed && rm -fr speedtest-cli
 next
