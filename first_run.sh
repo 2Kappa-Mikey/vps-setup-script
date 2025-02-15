@@ -135,12 +135,21 @@ else
     apt install cron -y
 fi
 
-# 10. Установка размера файлов журналов в 1Gb
+#10. Установка vnstat для анализа объёма трафика
+echo "Установка vnstat если его нет"
+if which vnstat >/dev/null; then
+    echo "vnstat уже установлен ранее"
+else
+    echo "Ставим vnstat"
+    apt install vnstat -y
+fi
+
+# 11. Установка размера файлов журналов в 1Gb
 echo "Установка размера файлов журналов в 1Gb и 2 недели хранения"
 journalctl --vacuum-size=1G
 journalctl --vacuum-time=2weeks
 
-# 11. Очистка 
+# 12. Очистка 
 echo "Очистка напоследок"
 apt autoclean -y && apt clean -y && apt autoremove -y
 
