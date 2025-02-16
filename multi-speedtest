@@ -49,6 +49,10 @@ next() {
     printf "%-70s\n" "-" | sed 's/\s/-/g'
 }
 
+print_header() {
+    printf "%-18s%-18s%-20s%-12s\n" "Node Name" "Upload Speed" "Download Speed" "Latency"
+}
+
 speed_test() {
     local server_id="$1"
     local nodeName="$2"
@@ -112,7 +116,6 @@ trap _exit INT QUIT TERM
 
 next
 install_speedtest
-printf "%-18s%-18s%-20s%-12s\n" "Node Name" "Upload Speed" "Download Speed" "Latency"
 
 while true; do
     echo ""
@@ -143,10 +146,16 @@ while true; do
         q|Q) echo "Выход из скрипта."; break;;
         *) _red "Неверный выбор. Попробуйте снова.\n"; continue;;
     esac
-    echo "Запуск теста для сервера: ${server_name}"
+
+    # Выводим заголовок перед каждым тестом
     next
+    print_header
+    next
+
+    echo "Запуск теста для сервера: ${server_name}"
     speed_test "$server_id" "$server_name"
     next
+
     read -rp "Провести тест с другим сервером? (y/N): " repeat
     if [[ ! $repeat =~ ^[Yy]$ ]]; then
         echo "Завершение работы скрипта."
