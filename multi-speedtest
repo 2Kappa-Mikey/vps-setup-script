@@ -1,27 +1,21 @@
 #!/usr/bin/env bash
-#
-# Description: Автотест скорости загрузки/выгрузки с интерактивным выбором сервера
-#
-# Copyright (C) 2015 - 2020 Teddysun <i@teddysun.com>
-# Модифицировано: Kappa Mikey, добавлена интерактивность
-#
 
-trap _exit INT QUIT TERM
+# Определение временной директории для работы скрипта
+SCRIPT_DIR=$(mktemp -d)
+cd "$SCRIPT_DIR" || { _red "Не удалось создать временную директорию.\n"; exit 1; }
 
+# Функции вывода цветного текста
 _red() {
-    printf '\033[0;31;31m%b\033[0m' "$1"
+    printf '\033[0;31m%b\033[0m' "$1"
 }
-
 _green() {
-    printf '\033[0;31;32m%b\033[0m' "$1"
+    printf '\033[0;32m%b\033[0m' "$1"
 }
-
 _yellow() {
-    printf '\033[0;31;33m%b\033[0m' "$1"
+    printf '\033[0;33m%b\033[0m' "$1"
 }
-
 _blue() {
-    printf '\033[0;31;36m%b\033[0m' "$1"
+    printf '\033[0;36m%b\033[0m' "$1"
 }
 
 _exists() {
@@ -37,7 +31,7 @@ _exists() {
     return ${rt}
 }
 
-_64bit(){
+_64bit() {
     if [ "$(getconf WORD_BIT)" = '32' ] && [ "$(getconf LONG_BIT)" = '64' ]; then
         return 0
     else
@@ -47,7 +41,7 @@ _64bit(){
 
 _exit() {
     _red "\nСкрипт был прерван.\n"
-    rm -fr speedtest.tgz speedtest-cli benchtest_*
+    rm -fr "$SCRIPT_DIR"
     exit 1
 }
 
@@ -80,22 +74,18 @@ speed_test() {
     fi
 }
 
-# Если функция не нужна – её можно удалить. Если нужна – используйте исправленный вариант:
 ipv4_info() {
-    local org city country region
+    local org
     org=$(wget -q -T10 -O- ipinfo.io/org)
+    local city
     city=$(wget -q -T10 -O- ipinfo.io/city)
+    local country
     country=$(wget -q -T10 -O- ipinfo.io/country)
+    local region
     region=$(wget -q -T10 -O- ipinfo.io/region)
-    if [[ -n "$org" ]]; then
-        echo " Organization          : $( _blue "$org" )"
-    fi
-    if [[ -n "$city" && -n "$country" ]]; then
-        echo " Location              : $( _blue "$city / $country" )"
-    fi
-    if [[ -n "$region" ]]; then
-        echo " Region                : $( _blue "$region" )"
-    fi
+    [[ -n "$org" ]] && echo " Organization          : $(_blue "$org")"
+    [[ -n "$city" && -n "$country" ]] && echo " Location              : $(_blue "$city / $country")"
+    [[ -n "$region" ]] && echo " Region                : $(_blue "$region")"
 }
 
 install_speedtest() {
@@ -103,9 +93,9 @@ install_speedtest() {
         _64bit && sys_bit=x86_64 || sys_bit=i386
         url1="https://install.speedtest.net/app/cli/ookla-speedtest-1.0.0-${sys_bit}-linux.tgz"
         url2="https://dl.lamp.sh/files/ookla-speedtest-1.0.0-${sys_bit}-linux.tgz"
-        wget --no-check-certificate -q -T10 -O speedtest.tgz ${url1}
+        wget --no-check-certificate -q -T10 -O speedtest.tgz "${url1}"
         if [ $? -ne 0 ]; then
-            wget --no-check-certificate -q -T10 -O speedtest.tgz ${url2}
+            wget --no-check-certificate -q -T10 -O speedtest.tgz "${url2}"
             [ $? -ne 0 ] && _red "Ошибка: не удалось загрузить speedtest-cli.\n" && exit 1
         fi
         mkdir -p speedtest-cli
@@ -115,14 +105,13 @@ install_speedtest() {
     fi
 }
 
+# Проверка наличия wget
 ! _exists "wget" && _red "Ошибка: команда wget не найдена. Установите wget и повторите попытку.\n" && exit 1
 
-# Открываем файловый дескриптор 3 для ввода с терминала
-exec 3</dev/tty || { _red "Ошибка: не удалось открыть /dev/tty для ввода.\n"; exit 1; }
+trap _exit INT QUIT TERM
 
 next
 install_speedtest
-
 printf "%-18s%-18s%-20s%-12s\n" "Node Name" "Upload Speed" "Download Speed" "Latency"
 
 while true; do
@@ -139,68 +128,30 @@ while true; do
     echo " 9) Vallo FIN (ID: 56225)"
     echo " 0) Default server (без указания server-id)"
     echo " q) Выход"
-    read -u 3 -rp "Введите номер сервера: " choice
+    read -rp "Введите номер сервера: " choice
     case "$choice" in
-        1)
-            server_id=52365
-            server_name="Amsterdam NL"
-            ;;
-        2)
-            server_id=68029
-            server_name="Dronten NL"
-            ;;
-        3)
-            server_id=40094
-            server_name="Frankfurt DE"
-            ;;
-        4)
-            server_id=44081
-            server_name="Frankfurt-Main DE"
-            ;;
-        5)
-            server_id=6827
-            server_name="Moscow MGTS RU"
-            ;;
-        6)
-            server_id=8009
-            server_name="Vilnius LT"
-            ;;
-        7)
-            server_id=6061
-            server_name="Stockholm SWE"
-            ;;
-        8)
-            server_id=57807
-            server_name="Helsinki FIN"
-            ;;
-        9)
-            server_id=56225
-            server_name="Vallo FIN"
-            ;;
-        0)
-            server_id=""
-            server_name="Default server"
-            ;;
-        q|Q)
-            echo "Выход из скрипта."
-            break
-            ;;
-        *)
-            _red "Неверный выбор. Попробуйте снова.\n"
-            continue
-            ;;
+        1) server_id=52365; server_name="Amsterdam NL";;
+        2) server_id=68029; server_name="Dronten NL";;
+        3) server_id=40094; server_name="Frankfurt DE";;
+        4) server_id=44081; server_name="Frankfurt-Main DE";;
+        5) server_id=6827; server_name="Moscow MGTS RU";;
+        6) server_id=8009; server_name="Vilnius LT";;
+        7) server_id=6061; server_name="Stockholm SWE";;
+        8) server_id=57807; server_name="Helsinki FIN";;
+        9) server_id=56225; server_name="Vallo FIN";;
+        0) server_id=""; server_name="Default server";;
+        q|Q) echo "Выход из скрипта."; break;;
+        *) _red "Неверный выбор. Попробуйте снова.\n"; continue;;
     esac
-
     echo "Запуск теста для сервера: ${server_name}"
     next
     speed_test "$server_id" "$server_name"
     next
-
-    read -u 3 -rp "Провести тест с другим сервером? (y/N): " repeat
+    read -rp "Провести тест с другим сервером? (y/N): " repeat
     if [[ ! $repeat =~ ^[Yy]$ ]]; then
         echo "Завершение работы скрипта."
         break
     fi
 done
 
-rm -fr speedtest-cli
+rm -fr "$SCRIPT_DIR"
