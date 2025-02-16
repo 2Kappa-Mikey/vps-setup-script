@@ -80,18 +80,22 @@ speed_test() {
     fi
 }
 
+# Если функция не нужна – её можно удалить. Если нужна – используйте исправленный вариант:
 ipv4_info() {
-    local org
+    local org city country region
     org=$(wget -q -T10 -O- ipinfo.io/org)
-    local city
     city=$(wget -q -T10 -O- ipinfo.io/city)
-    local country
     country=$(wget -q -T10 -O- ipinfo.io/country)
-    local region
     region=$(wget -q -T10 -O- ipinfo.io/region)
-    [[ -n "$org" ]] && echo " Organization          : $(_blue "$org")"
-    [[ -n "$city" && -n "$country" ]] && echo " Location              : $(_blue "$city / $country")"
-    [[ -n "$region" ]] && echo " Region                : $(_blue "$region")"
+    if [[ -n "$org" ]]; then
+        echo " Organization          : $( _blue "$org" )"
+    fi
+    if [[ -n "$city" && -n "$country" ]]; then
+        echo " Location              : $( _blue "$city / $country" )"
+    fi
+    if [[ -n "$region" ]]; then
+        echo " Region                : $( _blue "$region" )"
+    fi
 }
 
 install_speedtest() {
@@ -111,10 +115,9 @@ install_speedtest() {
     fi
 }
 
-# Проверка наличия wget
 ! _exists "wget" && _red "Ошибка: команда wget не найдена. Установите wget и повторите попытку.\n" && exit 1
 
-# Открываем дескриптор 3 для чтения ввода из терминала
+# Открываем файловый дескриптор 3 для ввода с терминала
 exec 3</dev/tty || { _red "Ошибка: не удалось открыть /dev/tty для ввода.\n"; exit 1; }
 
 next
@@ -136,4 +139,68 @@ while true; do
     echo " 9) Vallo FIN (ID: 56225)"
     echo " 0) Default server (без указания server-id)"
     echo " q) Выход"
-    read -u 3 -rp "Введите номер 
+    read -u 3 -rp "Введите номер сервера: " choice
+    case "$choice" in
+        1)
+            server_id=52365
+            server_name="Amsterdam NL"
+            ;;
+        2)
+            server_id=68029
+            server_name="Dronten NL"
+            ;;
+        3)
+            server_id=40094
+            server_name="Frankfurt DE"
+            ;;
+        4)
+            server_id=44081
+            server_name="Frankfurt-Main DE"
+            ;;
+        5)
+            server_id=6827
+            server_name="Moscow MGTS RU"
+            ;;
+        6)
+            server_id=8009
+            server_name="Vilnius LT"
+            ;;
+        7)
+            server_id=6061
+            server_name="Stockholm SWE"
+            ;;
+        8)
+            server_id=57807
+            server_name="Helsinki FIN"
+            ;;
+        9)
+            server_id=56225
+            server_name="Vallo FIN"
+            ;;
+        0)
+            server_id=""
+            server_name="Default server"
+            ;;
+        q|Q)
+            echo "Выход из скрипта."
+            break
+            ;;
+        *)
+            _red "Неверный выбор. Попробуйте снова.\n"
+            continue
+            ;;
+    esac
+
+    echo "Запуск теста для сервера: ${server_name}"
+    next
+    speed_test "$server_id" "$server_name"
+    next
+
+    read -u 3 -rp "Провести тест с другим сервером? (y/N): " repeat
+    if [[ ! $repeat =~ ^[Yy]$ ]]; then
+        echo "Завершение работы скрипта."
+        break
+    fi
+done
+
+rm -fr speedtest-cli
