@@ -133,7 +133,7 @@ while true; do
     echo " 9) Vallo FIN (ID: 56225)"
     echo " 0) Default server (без указания server-id)"
     echo " q) Выход"
-    read -rp "Введите номер сервера: " choice
+    read -rp "Введите номер сервера: " choice < /dev/tty
     case "$choice" in
         1)
             server_id=52365
@@ -161,40 +161,4 @@ while true; do
             ;;
         7)
             server_id=6061
-            server_name="Stockholm SWE"
-            ;;
-        8)
-            server_id=57807
-            server_name="Helsinki FIN"
-            ;;
-        9)
-            server_id=56225
-            server_name="Vallo FIN"
-            ;;
-        0)
-            server_id=""
-            server_name="Default server"
-            ;;
-        q|Q)
-            echo "Выход из скрипта."
-            break
-            ;;
-        *)
-            _red "Неверный выбор. Попробуйте снова.\n"
-            continue
-            ;;
-    esac
-
-    echo "Запуск теста для сервера: ${server_name}"
-    next
-    speed_test "$server_id" "$server_name"
-    next
-
-    read -rp "Провести тест с другим сервером? (y/N): " repeat
-    if [[ ! $repeat =~ ^[Yy]$ ]]; then
-        echo "Завершение работы скрипта."
-        break
-    fi
-done
-
-rm -fr speedtest-cli
+            se
