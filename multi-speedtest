@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 #
-# Description: Auto test download & I/O speed script
+# Description: Автотест скорости загрузки/выгрузки с интерактивным выбором сервера
 #
 # Copyright (C) 2015 - 2020 Teddysun <i@teddysun.com>
-# Thanks: LookBack <admin@dwhd.org>
-# URL: https://teddysun.com/444.html
-# Modified by Kappa Mikey 
-
+# Модифицировано: Kappa Mikey и дополнено интерактивностью
+#
 
 trap _exit INT QUIT TERM
 
@@ -40,7 +38,7 @@ _exists() {
 }
 
 _64bit(){
-    if [ $(getconf WORD_BIT) = '32' ] && [ $(getconf LONG_BIT) = '64' ]; then
+    if [ "$(getconf WORD_BIT)" = '32' ] && [ "$(getconf LONG_BIT)" = '64' ]; then
         return 0
     else
         return 1
@@ -48,71 +46,155 @@ _64bit(){
 }
 
 _exit() {
-    _red "\nThe script has been terminated.\n"
-    # clean up
+    _red "\nСкрипт был прерван.\n"
     rm -fr speedtest.tgz speedtest-cli benchtest_*
     exit 1
 }
-
 
 next() {
     printf "%-70s\n" "-" | sed 's/\s/-/g'
 }
 
 speed_test() {
+    local server_id="$1"
     local nodeName="$2"
-    [ -z "$1" ] && ./speedtest-cli/speedtest --progress=no --accept-license --accept-gdpr > ./speedtest-cli/speedtest.log 2>&1 || \
-    ./speedtest-cli/speedtest --progress=no --server-id=$1 --accept-license --accept-gdpr > ./speedtest-cli/speedtest.log 2>&1
+    if [ -z "$server_id" ]; then
+        ./speedtest-cli/speedtest --progress=no --accept-license --accept-gdpr > ./speedtest-cli/speedtest.log 2>&1
+    else
+        ./speedtest-cli/speedtest --progress=no --server-id="$server_id" --accept-license --accept-gdpr > ./speedtest-cli/speedtest.log 2>&1
+    fi
     if [ $? -eq 0 ]; then
-        local dl_speed=$(awk '/Download/{print $3" "$4}' ./speedtest-cli/speedtest.log)
-        local up_speed=$(awk '/Upload/{print $3" "$4}' ./speedtest-cli/speedtest.log)
-        local latency=$(awk '/Latency/{print $2" "$3}' ./speedtest-cli/speedtest.log)
-        if [[ -n "${dl_speed}" && -n "${up_speed}" && -n "${latency}" ]]; then
+        local dl_speed
+        dl_speed=$(awk '/Download/{print $3" "$4}' ./speedtest-cli/speedtest.log)
+        local up_speed
+        up_speed=$(awk '/Upload/{print $3" "$4}' ./speedtest-cli/speedtest.log)
+        local latency
+        latency=$(awk '/Latency/{print $2" "$3}' ./speedtest-cli/speedtest.log)
+        if [[ -n "$dl_speed" && -n "$up_speed" && -n "$latency" ]]; then
             printf "\033[0;33m%-18s\033[0;32m%-18s\033[0;31m%-20s\033[0;36m%-12s\033[0m\n" " ${nodeName}" "${up_speed}" "${dl_speed}" "${latency}"
+        else
+            _red "Ошибка: не удалось получить результаты теста.\n"
         fi
+    else
+        _red "Ошибка выполнения speedtest для сервера: ${nodeName}\n"
     fi
 }
 
-speed() {
-     speed_test '52365' 'Amsterdam NL     '
-     speed_test '68029' 'Dronten NL       '
-     speed_test '40094' 'Frankfurt DE     '
-     speed_test '44081' 'Frankfurt-Main DE' 
-     speed_test '6827'  'Moscow MGTS RU   '
-     speed_test '8009'  'Vilnius LT       '
-     speed_test '6061'  'Stockholm SWE    '
-     speed_test '57807' 'Helsinki FIN     '
-     speed_test '56225' 'Vallo FIN        '
-}
-
 ipv4_info() {
-    local org="$(wget -q -T10 -O- ipinfo.io/org)"
-    local city="$(wget -q -T10 -O- ipinfo.io/city)"
-    local country="$(wget -q -T10 -O- ipinfo.io/country)"
-    local region="$(wget -q -T10 -O- ipinfo.io/region)"
+    local org
+    org=$(wget -q -T10 -O- ipinfo.io/org)
+    local city
+    city=$(wget -q -T10 -O- ipinfo.io/city)
+    local country
+    country=$(wget -q -T10 -O- ipinfo.io/country)
+    local region
+    region=$(wget -q -T10 -O- ipinfo.io/region)
     [[ -n "$org" ]] && echo " Organization          : $(_blue "$org")"
-    [[ -n "$city" && -n "country" ]] && echo " Location              : $(_blue "$city / $country")"
+    [[ -n "$city" && -n "$country" ]] && echo " Location              : $(_blue "$city / $country")"
     [[ -n "$region" ]] && echo " Region                : $(_blue "$region")"
 }
 
 install_speedtest() {
-    if  [ ! -e "./speedtest-cli/speedtest" ]; then
+    if [ ! -e "./speedtest-cli/speedtest" ]; then
         _64bit && sys_bit=x86_64 || sys_bit=i386
         url1="https://install.speedtest.net/app/cli/ookla-speedtest-1.0.0-${sys_bit}-linux.tgz"
         url2="https://dl.lamp.sh/files/ookla-speedtest-1.0.0-${sys_bit}-linux.tgz"
         wget --no-check-certificate -q -T10 -O speedtest.tgz ${url1}
         if [ $? -ne 0 ]; then
             wget --no-check-certificate -q -T10 -O speedtest.tgz ${url2}
-            [ $? -ne 0 ] && _red "Error: Failed to download speedtest-cli.\n" && exit 1
+            [ $? -ne 0 ] && _red "Ошибка: не удалось загрузить speedtest-cli.\n" && exit 1
         fi
-        mkdir -p speedtest-cli && tar zxf speedtest.tgz -C ./speedtest-cli && chmod +x ./speedtest-cli/speedtest
+        mkdir -p speedtest-cli
+        tar zxf speedtest.tgz -C ./speedtest-cli
+        chmod +x ./speedtest-cli/speedtest
         rm -f speedtest.tgz
     fi
 }
 
-! _exists "wget" && _red "Error: wget command not found. You must be install wget command at first.\n" && exit 1
+# Проверка наличия wget
+! _exists "wget" && _red "Ошибка: команда wget не найдена. Установите wget и повторите попытку.\n" && exit 1
 
 next
-install_speedtest && printf "%-18s%-18s%-20s%-12s\n" "Node Name" "  Upload Speed" "  Download Speed" "  Latency"
-speed && rm -fr speedtest-cli
-next
+install_speedtest
+
+printf "%-18s%-18s%-20s%-12s\n" "Node Name" "Upload Speed" "Download Speed" "Latency"
+
+while true; do
+    echo ""
+    echo "Выберите сервер для теста скорости:"
+    echo " 1) Amsterdam NL (ID: 52365)"
+    echo " 2) Dronten NL (ID: 68029)"
+    echo " 3) Frankfurt DE (ID: 40094)"
+    echo " 4) Frankfurt-Main DE (ID: 44081)"
+    echo " 5) Moscow MGTS RU (ID: 6827)"
+    echo " 6) Vilnius LT (ID: 8009)"
+    echo " 7) Stockholm SWE (ID: 6061)"
+    echo " 8) Helsinki FIN (ID: 57807)"
+    echo " 9) Vallo FIN (ID: 56225)"
+    echo " 0) Default server (без указания server-id)"
+    echo " q) Выход"
+    read -rp "Введите номер сервера: " choice
+    case "$choice" in
+        1)
+            server_id=52365
+            server_name="Amsterdam NL"
+            ;;
+        2)
+            server_id=68029
+            server_name="Dronten NL"
+            ;;
+        3)
+            server_id=40094
+            server_name="Frankfurt DE"
+            ;;
+        4)
+            server_id=44081
+            server_name="Frankfurt-Main DE"
+            ;;
+        5)
+            server_id=6827
+            server_name="Moscow MGTS RU"
+            ;;
+        6)
+            server_id=8009
+            server_name="Vilnius LT"
+            ;;
+        7)
+            server_id=6061
+            server_name="Stockholm SWE"
+            ;;
+        8)
+            server_id=57807
+            server_name="Helsinki FIN"
+            ;;
+        9)
+            server_id=56225
+            server_name="Vallo FIN"
+            ;;
+        0)
+            server_id=""
+            server_name="Default server"
+            ;;
+        q|Q)
+            echo "Выход из скрипта."
+            break
+            ;;
+        *)
+            _red "Неверный выбор. Попробуйте снова.\n"
+            continue
+            ;;
+    esac
+
+    echo "Запуск теста для сервера: ${server_name}"
+    next
+    speed_test "$server_id" "$server_name"
+    next
+
+    read -rp "Провести тест с другим сервером? (y/N): " repeat
+    if [[ ! $repeat =~ ^[Yy]$ ]]; then
+        echo "Завершение работы скрипта."
+        break
+    fi
+done
+
+rm -fr speedtest-cli
