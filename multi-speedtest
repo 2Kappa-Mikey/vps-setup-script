@@ -82,7 +82,7 @@ speed() {
      speed_test '8009'  'Vilnius LT       '
      speed_test '6061'  'Stockholm SWE    '
      speed_test '57807' 'Helsinki FIN     '
-    # speed_test '13242' 'Japan JP'
+     speed_test '56225' 'Vallo FIN        '
 }
 
 ipv4_info() {
