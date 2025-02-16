@@ -3,7 +3,7 @@
 # Description: Автотест скорости загрузки/выгрузки с интерактивным выбором сервера
 #
 # Copyright (C) 2015 - 2020 Teddysun <i@teddysun.com>
-# Модифицировано: Kappa Mikey и дополнено интерактивностью
+# Модифицировано: Kappa Mikey, добавлена интерактивность
 #
 
 trap _exit INT QUIT TERM
@@ -114,6 +114,9 @@ install_speedtest() {
 # Проверка наличия wget
 ! _exists "wget" && _red "Ошибка: команда wget не найдена. Установите wget и повторите попытку.\n" && exit 1
 
+# Открываем дескриптор 3 для чтения ввода из терминала
+exec 3</dev/tty || { _red "Ошибка: не удалось открыть /dev/tty для ввода.\n"; exit 1; }
+
 next
 install_speedtest
 
@@ -133,32 +136,4 @@ while true; do
     echo " 9) Vallo FIN (ID: 56225)"
     echo " 0) Default server (без указания server-id)"
     echo " q) Выход"
-    read -rp "Введите номер сервера: " choice < /dev/tty
-    case "$choice" in
-        1)
-            server_id=52365
-            server_name="Amsterdam NL"
-            ;;
-        2)
-            server_id=68029
-            server_name="Dronten NL"
-            ;;
-        3)
-            server_id=40094
-            server_name="Frankfurt DE"
-            ;;
-        4)
-            server_id=44081
-            server_name="Frankfurt-Main DE"
-            ;;
-        5)
-            server_id=6827
-            server_name="Moscow MGTS RU"
-            ;;
-        6)
-            server_id=8009
-            server_name="Vilnius LT"
-            ;;
-        7)
-            server_id=6061
-            se
+    read -u 3 -rp "Введите номер 
