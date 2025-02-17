@@ -3,7 +3,7 @@
 # Description: Автотест скорости загрузки/выгрузки с интерактивным выбором сервера
 #
 # Copyright (C) 2015 - 2020 Teddysun <i@teddysun.com>
-# Модифицировано: Kappa Mikey и дополнено интерактивностью
+# Модифицировано: Kappa Mikey, добавлена интерактивность
 #
 
 trap _exit INT QUIT TERM
@@ -80,18 +80,22 @@ speed_test() {
     fi
 }
 
+# Если функция не нужна – её можно удалить. Если нужна – используйте исправленный вариант:
 ipv4_info() {
-    local org
+    local org city country region
     org=$(wget -q -T10 -O- ipinfo.io/org)
-    local city
     city=$(wget -q -T10 -O- ipinfo.io/city)
-    local country
     country=$(wget -q -T10 -O- ipinfo.io/country)
-    local region
     region=$(wget -q -T10 -O- ipinfo.io/region)
-    [[ -n "$org" ]] && echo " Organization          : $(_blue "$org")"
-    [[ -n "$city" && -n "$country" ]] && echo " Location              : $(_blue "$city / $country")"
-    [[ -n "$region" ]] && echo " Region                : $(_blue "$region")"
+    if [[ -n "$org" ]]; then
+        echo " Organization          : $( _blue "$org" )"
+    fi
+    if [[ -n "$city" && -n "$country" ]]; then
+        echo " Location              : $( _blue "$city / $country" )"
+    fi
+    if [[ -n "$region" ]]; then
+        echo " Region                : $( _blue "$region" )"
+    fi
 }
 
 install_speedtest() {
@@ -111,8 +115,10 @@ install_speedtest() {
     fi
 }
 
-# Проверка наличия wget
 ! _exists "wget" && _red "Ошибка: команда wget не найдена. Установите wget и повторите попытку.\n" && exit 1
+
+# Открываем файловый дескриптор 3 для ввода с терминала
+exec 3</dev/tty || { _red "Ошибка: не удалось открыть /dev/tty для ввода.\n"; exit 1; }
 
 next
 install_speedtest
@@ -133,7 +139,7 @@ while true; do
     echo " 9) Vallo FIN (ID: 56225)"
     echo " 0) Default server (без указания server-id)"
     echo " q) Выход"
-    read -rp "Введите номер сервера: " choice
+    read -u 3 -rp "Введите номер сервера: " choice
     case "$choice" in
         1)
             server_id=52365
@@ -190,7 +196,7 @@ while true; do
     speed_test "$server_id" "$server_name"
     next
 
-    read -rp "Провести тест с другим сервером? (y/N): " repeat
+    read -u 3 -rp "Провести тест с другим сервером? (y/N): " repeat
     if [[ ! $repeat =~ ^[Yy]$ ]]; then
         echo "Завершение работы скрипта."
         break
